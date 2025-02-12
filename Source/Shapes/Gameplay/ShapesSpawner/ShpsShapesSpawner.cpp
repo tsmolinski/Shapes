@@ -24,40 +24,46 @@ AShpsShapesSpawner::AShpsShapesSpawner()
 void AShpsShapesSpawner::BeginPlay()
 {
 	Super::BeginPlay();
+
+	for (auto& Primitive : PrimitivesArray)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive);
+			ShapesArray.Add(SpawnedShape);
+		}
+	}
+
+	AddColorsToShapes(ShapesArray, ColorsArray);
 	
 }
 
-void AShpsShapesSpawner::SpawnShapesInRandomLocAndSize(TArray<TSubclassOf<AShpsBaseShape>> Primitives, int RandomAmountGenerated)
+AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(TSubclassOf<AShpsBaseShape> Primitive)
 {
-	for (auto& Primitive : Primitives)
+	TObjectPtr<UWorld> World = GetWorld();
+	if (World)
 	{
-		for (int i = 0; i < RandomAmountGenerated; i++)
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+				
+		FVector BoxLocation = BoxComponent->GetComponentLocation();
+		FVector BoxExtent = BoxComponent->GetUnscaledBoxExtent();
+		FVector RandomLocationInBox = UKismetMathLibrary::RandomPointInBoundingBox(BoxLocation, BoxExtent);
+				
+		float RandomSizeFloat = UKismetMathLibrary::RandomFloatInRange(0.5, 2.5);
+		FVector RandomSize = FVector(RandomSizeFloat);
+
+		FTransform SpawnTransform;
+		SpawnTransform.SetLocation(RandomLocationInBox);
+		SpawnTransform.SetScale3D(RandomSize);
+
+		AShpsBaseShape* SpawnedShape = World->SpawnActor<AShpsBaseShape>(Primitive, SpawnTransform, SpawnParams);
+		if (SpawnedShape)
 		{
-			TObjectPtr<UWorld> World = GetWorld();
-			if (World)
-			{
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = this;
-				
-				FVector BoxLocation = BoxComponent->GetComponentLocation();
-				FVector BoxExtent = BoxComponent->GetUnscaledBoxExtent();
-				FVector RandomLocationInBox = UKismetMathLibrary::RandomPointInBoundingBox(BoxLocation, BoxExtent);
-				
-				float RandomSizeFloat = UKismetMathLibrary::RandomFloatInRange(0.5, 2.5);
-				FVector RandomSize = FVector(RandomSizeFloat);
-
-				FTransform SpawnTransform;
-				SpawnTransform.SetLocation(RandomLocationInBox);
-				SpawnTransform.SetScale3D(RandomSize);
-
-				AShpsBaseShape* SpawnedShape = World->SpawnActor<AShpsBaseShape>(Primitive, SpawnTransform, SpawnParams);
-
-				//Move this to separate function
-				//Maybe for loops too? Probably it would be better idea
-				ShapesArray.Add(SpawnedShape);
-			}
+			return SpawnedShape;
 		}
 	}
+	return nullptr;
 }
 
 void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors)

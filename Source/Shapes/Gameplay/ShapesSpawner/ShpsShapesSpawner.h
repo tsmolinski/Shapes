@@ -22,25 +22,23 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UFUNCTION(BlueprintCallable)
-	void SpawnShapesInRandomLocAndSize(TArray<TSubclassOf<AShpsBaseShape>> Primitives, int RandomAmountGenerated);
 	
-	UFUNCTION(BlueprintCallable)
+	AShpsBaseShape* SpawnShapeInRandomLocAndSize(TSubclassOf<AShpsBaseShape> Primitive);
+	
 	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors);
 
 	TObjectPtr<UMaterialInterface> Material;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
+	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<FLinearColor> ColorsArray;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
+	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<TSubclassOf<AShpsBaseShape>> PrimitivesArray;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
+	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<TObjectPtr<AShpsBaseShape>> ShapesArray;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
