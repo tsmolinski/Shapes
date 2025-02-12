@@ -7,6 +7,8 @@
 #include "ShpsShapesSpawner.generated.h"
 
 class AShpsBaseShape;
+class UBoxComponent;
+class UMaterialInterface;
 
 UCLASS()
 class SHAPES_API AShpsShapesSpawner : public AActor
@@ -22,8 +24,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
+	void SpawnShapesInRandomLocAndSize(TArray<TSubclassOf<AShpsBaseShape>> Primitives, int RandomAmountGenerated);
+	
+	UFUNCTION(BlueprintCallable)
 	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors);
 
+	TObjectPtr<UMaterialInterface> Material;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
 	TArray<FLinearColor> ColorsArray;
 
@@ -32,6 +39,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
 	TArray<TObjectPtr<AShpsBaseShape>> ShapesArray;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UBoxComponent> BoxComponent;
 
 public:	
 	// Called every frame
