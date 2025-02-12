@@ -4,20 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ShapesSpawner.generated.h"
+#include "ShpsBaseShape.generated.h"
+
+class UStaticMeshComponent;
 
 UCLASS()
-class SHAPES_API AShapesSpawner : public AActor
+class SHAPES_API AShpsBaseShape : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AShapesSpawner();
+	AShpsBaseShape();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
 public:	
 	// Called every frame
