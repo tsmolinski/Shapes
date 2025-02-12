@@ -20,8 +20,11 @@ void AShpsShapesSpawner::BeginPlay()
 	
 }
 
-void AShpsShapesSpawner::AddColor(AShpsBaseShape* Shape, int Index, TArray<FLinearColor> Colors)
+void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors)
 {
+	int Index = 0;
+	for (auto& Shape : Shapes)
+	{
 		TObjectPtr<UStaticMeshComponent> ShapeMeshComponent = Cast<UStaticMeshComponent>(Shape->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 		if (ShapeMeshComponent)
 		{
@@ -31,8 +34,10 @@ void AShpsShapesSpawner::AddColor(AShpsBaseShape* Shape, int Index, TArray<FLine
 			{
 				int ColorsArrayIndex = Index % Colors.Num();
 				ShapeMaterialInstance->SetVectorParameterValue(FName("Color"), Colors[ColorsArrayIndex]);
+				++Index;
 			}
 		}
+	}
 }
 
 // Called every frame

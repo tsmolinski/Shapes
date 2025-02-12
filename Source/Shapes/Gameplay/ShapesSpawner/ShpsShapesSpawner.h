@@ -22,7 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable)
-	void AddColor(AShpsBaseShape* Shape, int Index, TArray<FLinearColor> Colors);
+	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Arrays")
 	TArray<FLinearColor> ColorsArray;
