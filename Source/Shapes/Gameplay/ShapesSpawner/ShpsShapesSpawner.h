@@ -23,11 +23,18 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	AShpsBaseShape* SpawnShapeInRandomLocAndSize(TSubclassOf<AShpsBaseShape> Primitive);
+	AShpsBaseShape* SpawnShapeInRandomLocAndSize(const TSubclassOf<AShpsBaseShape>& Primitive);
 	
-	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors);
+	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TArray<FLinearColor>& Colors);
+
+	void OnRandomNumberGenerated(int Number);
+
+	void InitSpawner();
 
 	TObjectPtr<UMaterialInterface> Material;
+
+	UPROPERTY()
+	int RandomNumber = 1;
 	
 	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<FLinearColor> ColorsArray;

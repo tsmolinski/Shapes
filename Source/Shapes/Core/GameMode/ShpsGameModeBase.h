@@ -22,5 +22,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	void GenerateRandomNumber(int Min, int Max);
+
+	UPROPERTY(EditDefaultsOnly)
+	int MinNumber = 2;
 	
+	UPROPERTY(EditDefaultsOnly)
+	int MaxNumber = 6;
 };

@@ -6,6 +6,8 @@
 #include "Components/BoxComponent.h"
 #include "Engine/World.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Shapes/Core/GameMode/ShpsGameModeBase.h"
 
 // Sets default values
 AShpsShapesSpawner::AShpsShapesSpawner()
@@ -25,20 +27,14 @@ void AShpsShapesSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (auto& Primitive : PrimitivesArray)
+	AShpsGameModeBase* GameModeBase =  Cast<AShpsGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (GameModeBase)
 	{
-		for (int i = 0; i < 3; i++)
-		{
-			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive);
-			ShapesArray.Add(SpawnedShape);
-		}
+		GameModeBase->OnRandomNumberGeneratedDelegate.AddUObject(this, &AShpsShapesSpawner::OnRandomNumberGenerated);
 	}
-
-	AddColorsToShapes(ShapesArray, ColorsArray);
-	
 }
 
-AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(TSubclassOf<AShpsBaseShape> Primitive)
+AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(const TSubclassOf<AShpsBaseShape>& Primitive)
 {
 	TObjectPtr<UWorld> World = GetWorld();
 	if (World)
@@ -66,7 +62,7 @@ AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(TSubclassOf<ASh
 	return nullptr;
 }
 
-void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArray<FLinearColor> Colors)
+void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TArray<FLinearColor>& Colors)
 {
 	int Index = 0;
 	for (auto& Shape : Shapes)
@@ -91,6 +87,29 @@ void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, TArra
 			}
 		}
 	}
+}
+
+void AShpsShapesSpawner::OnRandomNumberGenerated(int Number)
+{
+	RandomNumber = Number;
+
+	UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::RandomNumber value is: %d"), RandomNumber);
+
+	InitSpawner();
+}
+
+void AShpsShapesSpawner::InitSpawner()
+{
+	for (auto& Primitive : PrimitivesArray)
+	{
+		for (int i = 0; i < RandomNumber; i++)
+		{
+			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive);
+			ShapesArray.Add(SpawnedShape);
+		}
+	}
+
+	AddColorsToShapes(ShapesArray, ColorsArray);
 }
 
 // Called every frame
