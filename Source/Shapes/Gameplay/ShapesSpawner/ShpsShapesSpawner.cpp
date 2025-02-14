@@ -88,6 +88,7 @@ void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const
 					int ColorsArrayIndex = Index % ColorsArray.Num();
 					MaterialInstanceDynamic->SetVectorParameterValue(FName("Color"), ColorsArray[ColorsArrayIndex]);
 					Shape->SetPrimitiveColor(ColorsArray[ColorsArrayIndex], Colors);
+					Shape->SetPrimitiveSize(Shape);
 					++Index;
 				}
 				

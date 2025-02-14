@@ -4,13 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Shapes/Gameplay/Interfaces/ShpsSelectableInterface.h"
 #include "ShpsBaseShape.generated.h"
 
+class UWidgetComponent;
 class UStaticMeshComponent;
 class FText;
 
 UCLASS()
-class SHAPES_API AShpsBaseShape : public AActor
+class SHAPES_API AShpsBaseShape : public AActor, public IShpsSelectableInterface
 {
 	GENERATED_BODY()
 	
@@ -24,14 +26,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FText GetPrimitiveColor();
 
-	FText* GetPrimitiveSize();
-
-	//void SetPrimitiveType(AShpsBaseShape* Shape, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives);
+	FText GetPrimitiveSize();
+	
 	void SetPrimitiveType(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives);
 
 	void SetPrimitiveColor(const FLinearColor& Color, TMap<FLinearColor, FText> Colors);
 
 	void SetPrimitiveSize(AShpsBaseShape* Shape);
+
+	void SelectPrimitive_Implementation() override;
+
+	void UnselectPrimitive_Implementation() override;
+
+	FText GetType_Implementation() override;
+
+	FText GetColor_Implementation() override;
+
+	FText GetSize_Implementation() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -39,6 +50,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UWidgetComponent> WidgetComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText PrimitiveType;

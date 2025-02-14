@@ -3,6 +3,7 @@
 
 #include "ShpsBaseShape.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 AShpsBaseShape::AShpsBaseShape()
@@ -12,6 +13,11 @@ AShpsBaseShape::AShpsBaseShape()
 
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = StaticMeshComponent;
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetupAttachment(StaticMeshComponent);
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	WidgetComponent->SetDrawAtDesiredSize(true);
 }
 
 FText AShpsBaseShape::GetPrimitiveType()
@@ -24,9 +30,9 @@ FText AShpsBaseShape::GetPrimitiveColor()
 	return PrimitiveColor;
 }
 
-FText* AShpsBaseShape::GetPrimitiveSize()
+FText AShpsBaseShape::GetPrimitiveSize()
 {
-	return &PrimitiveSize;
+	return PrimitiveSize;
 }
 
 void AShpsBaseShape::SetPrimitiveType(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives)
@@ -41,13 +47,45 @@ void AShpsBaseShape::SetPrimitiveColor(const FLinearColor& Color, TMap<FLinearCo
 
 void AShpsBaseShape::SetPrimitiveSize(AShpsBaseShape* Shape)
 {
-	
+	FVector MinVec, MaxVec;
+	Shape->StaticMeshComponent->GetLocalBounds(MinVec, MaxVec);
+	FVector Size = MinVec.GetAbs() + MaxVec;
+	Size = Size * StaticMeshComponent->GetComponentScale();
+
+	PrimitiveSize = Size.ToText();
+}
+
+void AShpsBaseShape::SelectPrimitive_Implementation()
+{
+	WidgetComponent->SetVisibility(true);
+}
+
+void AShpsBaseShape::UnselectPrimitive_Implementation()
+{
+	WidgetComponent->SetVisibility(false);
+}
+
+FText AShpsBaseShape::GetType_Implementation()
+{
+	return GetPrimitiveType();
+}
+
+FText AShpsBaseShape::GetColor_Implementation()
+{
+	return GetPrimitiveColor();
+}
+
+FText AShpsBaseShape::GetSize_Implementation()
+{
+	return GetPrimitiveSize();
 }
 
 // Called when the game starts or when spawned
 void AShpsBaseShape::BeginPlay()
 {
 	Super::BeginPlay();
+
+	WidgetComponent->SetVisibility(false);
 }
 
 // Called every frame
