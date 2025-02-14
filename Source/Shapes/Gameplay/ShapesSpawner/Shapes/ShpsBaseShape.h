@@ -28,11 +28,11 @@ public:
 
 	FText GetPrimitiveSize();
 	
-	void SetPrimitiveType(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives);
+	void SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives);
 
-	void SetPrimitiveColor(const FLinearColor& Color, TMap<FLinearColor, FText> Colors);
-
-	void SetPrimitiveSize(AShpsBaseShape* Shape);
+	void SetPrimitiveColorInfo(const FLinearColor& Color, TMap<FLinearColor, FText> Colors);
+	
+	void SetPrimitiveSizeInfo();
 
 	void SelectPrimitive_Implementation() override;
 
@@ -50,8 +50,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> WidgetComponent;
 	

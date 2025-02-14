@@ -18,6 +18,8 @@ class SHAPES_API UShpsTooltipWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	void SetSelectableInterfaceActor(TScriptInterface<UShpsSelectableInterface> Other);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TScriptInterface<UShpsSelectableInterface> SelectableInterfaceActor;
 	

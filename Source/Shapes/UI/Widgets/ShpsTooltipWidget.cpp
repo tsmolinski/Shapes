@@ -3,3 +3,7 @@
 
 #include "ShpsTooltipWidget.h"
 
+void UShpsTooltipWidget::SetSelectableInterfaceActor(TScriptInterface<UShpsSelectableInterface> Other)
+{
+	SelectableInterfaceActor = Other;
+}

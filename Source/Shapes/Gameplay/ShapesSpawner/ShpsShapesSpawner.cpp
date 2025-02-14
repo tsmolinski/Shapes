@@ -58,7 +58,6 @@ AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(const TSubclass
 		AShpsBaseShape* SpawnedShape = World->SpawnActor<AShpsBaseShape>(Primitive, SpawnTransform, SpawnParams);
 		if (SpawnedShape)
 		{
-			SpawnedShape->SetPrimitiveType(Primitive, PrimitivesMap);
 			return SpawnedShape;
 		}
 	}
@@ -87,8 +86,7 @@ void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const
 					
 					int ColorsArrayIndex = Index % ColorsArray.Num();
 					MaterialInstanceDynamic->SetVectorParameterValue(FName("Color"), ColorsArray[ColorsArrayIndex]);
-					Shape->SetPrimitiveColor(ColorsArray[ColorsArrayIndex], Colors);
-					Shape->SetPrimitiveSize(Shape);
+					Shape->SetPrimitiveColorInfo(ColorsArray[ColorsArrayIndex], Colors);
 					++Index;
 				}
 				
@@ -114,6 +112,8 @@ void AShpsShapesSpawner::InitSpawner()
 		{
 			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive.Key);
 			ShapesArray.Add(SpawnedShape);
+			SpawnedShape->SetPrimitiveTypeInfo(Primitive.Key, PrimitivesMap);
+			SpawnedShape->SetPrimitiveSizeInfo();
 		}
 	}
 

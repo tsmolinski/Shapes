@@ -5,6 +5,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
 
+#include "Shapes/UI/Widgets/ShpsTooltipWidget.h"
+
 // Sets default values
 AShpsBaseShape::AShpsBaseShape()
 {
@@ -35,20 +37,20 @@ FText AShpsBaseShape::GetPrimitiveSize()
 	return PrimitiveSize;
 }
 
-void AShpsBaseShape::SetPrimitiveType(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives)
+void AShpsBaseShape::SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives)
 {
 	PrimitiveType = *(Primitives.Find(Primitive));
 }
 
-void AShpsBaseShape::SetPrimitiveColor(const FLinearColor& Color, TMap<FLinearColor, FText> Colors)
+void AShpsBaseShape::SetPrimitiveColorInfo(const FLinearColor& Color, TMap<FLinearColor, FText> Colors)
 {
 	PrimitiveColor = *(Colors.Find(Color));
 }
 
-void AShpsBaseShape::SetPrimitiveSize(AShpsBaseShape* Shape)
+void AShpsBaseShape::SetPrimitiveSizeInfo()
 {
 	FVector MinVec, MaxVec;
-	Shape->StaticMeshComponent->GetLocalBounds(MinVec, MaxVec);
+	this->StaticMeshComponent->GetLocalBounds(MinVec, MaxVec);
 	FVector Size = MinVec.GetAbs() + MaxVec;
 	Size = Size * StaticMeshComponent->GetComponentScale();
 
@@ -86,6 +88,9 @@ void AShpsBaseShape::BeginPlay()
 	Super::BeginPlay();
 
 	WidgetComponent->SetVisibility(false);
+
+	TObjectPtr<UShpsTooltipWidget> TooltipWidget =  Cast<UShpsTooltipWidget>(WidgetComponent->GetUserWidgetObject());
+	TooltipWidget->SetSelectableInterfaceActor(this);
 }
 
 // Called every frame
