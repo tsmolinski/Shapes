@@ -14,6 +14,36 @@ AShpsBaseShape::AShpsBaseShape()
 	RootComponent = StaticMeshComponent;
 }
 
+FText AShpsBaseShape::GetPrimitiveType()
+{
+	return PrimitiveType;
+}
+
+FText AShpsBaseShape::GetPrimitiveColor()
+{
+	return PrimitiveColor;
+}
+
+FText* AShpsBaseShape::GetPrimitiveSize()
+{
+	return &PrimitiveSize;
+}
+
+void AShpsBaseShape::SetPrimitiveType(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives)
+{
+	PrimitiveType = *(Primitives.Find(Primitive));
+}
+
+void AShpsBaseShape::SetPrimitiveColor(const FLinearColor& Color, TMap<FLinearColor, FText> Colors)
+{
+	PrimitiveColor = *(Colors.Find(Color));
+}
+
+void AShpsBaseShape::SetPrimitiveSize(AShpsBaseShape* Shape)
+{
+	
+}
+
 // Called when the game starts or when spawned
 void AShpsBaseShape::BeginPlay()
 {

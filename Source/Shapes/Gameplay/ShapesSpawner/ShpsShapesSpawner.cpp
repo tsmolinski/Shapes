@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Shapes/Core/GameMode/ShpsGameModeBase.h"
 
+#include "Containers/Map.h"
+
 // Sets default values
 AShpsShapesSpawner::AShpsShapesSpawner()
 {
@@ -56,15 +58,19 @@ AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(const TSubclass
 		AShpsBaseShape* SpawnedShape = World->SpawnActor<AShpsBaseShape>(Primitive, SpawnTransform, SpawnParams);
 		if (SpawnedShape)
 		{
+			SpawnedShape->SetPrimitiveType(Primitive, PrimitivesMap);
 			return SpawnedShape;
 		}
 	}
 	return nullptr;
 }
 
-void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TArray<FLinearColor>& Colors)
+void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TMap<FLinearColor, FText>& Colors)
 {
 	int Index = 0;
+	TArray<FLinearColor> ColorsArray;
+	Colors.GenerateKeyArray(ColorsArray);
+	
 	for (auto& Shape : Shapes)
 	{
 		TObjectPtr<UStaticMeshComponent> ShapeMeshComponent = Cast<UStaticMeshComponent>(Shape->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -79,8 +85,9 @@ void AShpsShapesSpawner::AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const
 				{
 					ShapeMeshComponent->SetMaterial(0, MaterialInstanceDynamic);
 					
-					int ColorsArrayIndex = Index % Colors.Num();
-					MaterialInstanceDynamic->SetVectorParameterValue(FName("Color"), Colors[ColorsArrayIndex]);
+					int ColorsArrayIndex = Index % ColorsArray.Num();
+					MaterialInstanceDynamic->SetVectorParameterValue(FName("Color"), ColorsArray[ColorsArrayIndex]);
+					Shape->SetPrimitiveColor(ColorsArray[ColorsArrayIndex], Colors);
 					++Index;
 				}
 				
@@ -100,16 +107,16 @@ void AShpsShapesSpawner::OnRandomNumberGenerated(int Number)
 
 void AShpsShapesSpawner::InitSpawner()
 {
-	for (auto& Primitive : PrimitivesArray)
+	for (auto& Primitive : PrimitivesMap)
 	{
 		for (int i = 0; i < RandomNumber; i++)
 		{
-			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive);
+			TObjectPtr<AShpsBaseShape> SpawnedShape = SpawnShapeInRandomLocAndSize(Primitive.Key);
 			ShapesArray.Add(SpawnedShape);
 		}
 	}
 
-	AddColorsToShapes(ShapesArray, ColorsArray);
+	AddColorsToShapes(ShapesArray, ColorsMap);
 }
 
 // Called every frame

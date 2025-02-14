@@ -9,6 +9,7 @@
 class AShpsBaseShape;
 class UBoxComponent;
 class UMaterialInterface;
+//class TMap;
 
 UCLASS()
 class SHAPES_API AShpsShapesSpawner : public AActor
@@ -25,7 +26,7 @@ protected:
 	
 	AShpsBaseShape* SpawnShapeInRandomLocAndSize(const TSubclassOf<AShpsBaseShape>& Primitive);
 	
-	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TArray<FLinearColor>& Colors);
+	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TMap<FLinearColor, FText>& Colors);
 
 	void OnRandomNumberGenerated(int Number);
 
@@ -36,11 +37,11 @@ protected:
 	UPROPERTY()
 	int RandomNumber = 1;
 	
-	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
-	TArray<FLinearColor> ColorsArray;
+	UPROPERTY(EditAnywhere, Category = "Arrays")
+	TMap<FLinearColor, FText> ColorsMap;
 
-	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
-	TArray<TSubclassOf<AShpsBaseShape>> PrimitivesArray;
+	UPROPERTY(EditAnywhere, Category = "Arrays")
+	TMap<TSubclassOf<AShpsBaseShape>, FText> PrimitivesMap;
 	
 	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<TObjectPtr<AShpsBaseShape>> ShapesArray;
