@@ -13,6 +13,7 @@ UCLASS()
 class SHAPES_API AShpsGameModeBase : public AGameModeBase
 {
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnRandomNumberGeneratedSignature, int);
+	
 	GENERATED_BODY()
 
 public:

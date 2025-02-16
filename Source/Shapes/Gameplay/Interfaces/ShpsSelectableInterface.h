@@ -6,6 +6,9 @@
 #include "UObject/Interface.h"
 #include "ShpsSelectableInterface.generated.h"
 
+//class AShpsBaseShape;
+class AACtor;
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UShpsSelectableInterface : public UInterface

@@ -20,6 +20,9 @@ public:
 	// Sets default values for this actor's properties
 	AShpsBaseShape();
 
+	//UFUNCTION()
+	//void OnShapeShooted(AActor* BaseShapeActor);
+	
 	UFUNCTION(BlueprintCallable)
 	FText GetPrimitiveType();
 
@@ -44,6 +47,9 @@ public:
 
 	FText GetSize_Implementation() override;
 
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> ShapeMaterialInstanceDynamic;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -53,7 +59,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> WidgetComponent;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText PrimitiveType;
 	

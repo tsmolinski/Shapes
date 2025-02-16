@@ -9,7 +9,6 @@
 class AShpsBaseShape;
 class UBoxComponent;
 class UMaterialInterface;
-//class TMap;
 
 UCLASS()
 class SHAPES_API AShpsShapesSpawner : public AActor
@@ -26,13 +25,27 @@ protected:
 	
 	AShpsBaseShape* SpawnShapeInRandomLocAndSize(const TSubclassOf<AShpsBaseShape>& Primitive);
 	
+	AShpsBaseShape* ChangePrimitiveType(const TSubclassOf<AShpsBaseShape>& PrimitiveType, AShpsBaseShape* Shape);
+	
 	void AddColorsToShapes(TArray<AShpsBaseShape*> Shapes, const TMap<FLinearColor, FText>& Colors);
+
+	void AddColorToShape(AShpsBaseShape* BaseShape, const FLinearColor& Color);
 
 	void OnRandomNumberGenerated(int Number);
 
 	void InitSpawner();
 
+	void UpdatePrimitivesNumMap();
+
+	void UpdateColorsNumMap();
+	
+	UFUNCTION()
+	void OnShapeShooted(AActor* BaseShapeActor);
+
 	TObjectPtr<UMaterialInterface> Material;
+
+	UPROPERTY(EditDefaultsOnly)
+	int ToleranceNumber = 1;
 
 	UPROPERTY()
 	int RandomNumber = 1;
@@ -45,6 +58,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<TObjectPtr<AShpsBaseShape>> ShapesArray;
+
+	UPROPERTY()
+	TMap<FString, int> PrimitivesNumMap;
+
+	UPROPERTY()
+	TMap<FString, int> ColorsNumMap;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;

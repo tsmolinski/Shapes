@@ -4,8 +4,9 @@
 #include "ShpsBaseShape.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
-
 #include "Shapes/UI/Widgets/ShpsTooltipWidget.h"
+//#include "Shapes/Core/Character/ShpsCharacter.h"
+//#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AShpsBaseShape::AShpsBaseShape()
@@ -21,6 +22,11 @@ AShpsBaseShape::AShpsBaseShape()
 	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	WidgetComponent->SetDrawAtDesiredSize(true);
 }
+
+//void AShpsBaseShape::OnShapeShooted(AActor* BaseShapeActor)
+//{
+	//UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::OnShapeShooted: %s"), *BaseShapeActor->GetName());
+//}
 
 FText AShpsBaseShape::GetPrimitiveType()
 {
@@ -89,8 +95,17 @@ void AShpsBaseShape::BeginPlay()
 
 	WidgetComponent->SetVisibility(false);
 
+	//TObjectPtr<AShpsCharacter> PlayerCharacter = Cast<AShpsCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	//if (PlayerCharacter)
+	//{
+		//PlayerCharacter->OnShapeShootedDelegate.AddDynamic(this, &AShpsBaseShape::OnShapeShooted);
+	//}
+	
 	TObjectPtr<UShpsTooltipWidget> TooltipWidget =  Cast<UShpsTooltipWidget>(WidgetComponent->GetUserWidgetObject());
-	TooltipWidget->SetSelectableInterfaceActor(this);
+	if (TooltipWidget)
+	{
+		TooltipWidget->SetSelectableInterfaceActor(this);
+	}
 }
 
 // Called every frame
