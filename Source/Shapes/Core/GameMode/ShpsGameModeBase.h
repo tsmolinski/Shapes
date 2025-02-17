@@ -25,8 +25,8 @@ protected:
 	void GenerateRandomNumber(int Min, int Max);
 
 	UPROPERTY(EditDefaultsOnly)
-	int MinNumber = 2;
+	int MinNumber = 4;
 	
 	UPROPERTY(EditDefaultsOnly)
-	int MaxNumber = 2;
+	int MaxNumber = 7;
 };

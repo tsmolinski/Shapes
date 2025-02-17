@@ -290,8 +290,70 @@ void AShpsShapesSpawner::UpdateColorsNumMap(TMap<FString, int>& ColorsNum)
 			ColorsNum.Add(Color.Value.ToString(), Index);
 		}
 	}
+}
 
+const FString* AShpsShapesSpawner::GetPrimitiveTypeLargestQuantity() const
+{
+	int ResultPrimitiveMax = *PrimitivesNumMap.Find(ShapesArray[0]->GetPrimitiveType().ToString());
+	for (const auto& Primitive : PrimitivesNumMap)
+	{
+		if (ResultPrimitiveMax < Primitive.Value)
+		{
+			ResultPrimitiveMax = Primitive.Value;
+		}
+	}
+	const FString* PrimitiveMaxTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMax);
+	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), **PrimitiveMaxTypeString);
 	
+	return PrimitiveMaxTypeString;
+}
+
+const FString* AShpsShapesSpawner::GetPrimitiveTypeLeastQuantity() const
+{
+	int ResultPrimitiveMin = *PrimitivesNumMap.Find(ShapesArray[0]->GetPrimitiveType().ToString());
+	for (const auto& Primitive : PrimitivesNumMap)
+	{
+		if (ResultPrimitiveMin > Primitive.Value)
+		{
+			ResultPrimitiveMin = Primitive.Value;
+		}
+	}
+	const FString* PrimitiveMinTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMin);
+	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), **PrimitiveMinTypeString);
+
+	return PrimitiveMinTypeString;
+}
+
+const FString* AShpsShapesSpawner::GetColorLargestQuantity() const
+{
+	int ResultColorMax = *ColorsNumMap.Find(ShapesArray[0]->GetPrimitiveColor().ToString());
+	for (const auto& Color : ColorsNumMap)
+	{
+		if (ResultColorMax < Color.Value)
+		{
+			ResultColorMax = Color.Value;
+		}
+	}
+	const FString* ColorMaxString = ColorsNumMap.FindKey(ResultColorMax);
+	UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), **ColorMaxString);
+
+	return ColorMaxString;
+}
+
+const FString* AShpsShapesSpawner::GetColorLeastQuantity() const
+{
+	int ResultColorMin = *ColorsNumMap.Find(ShapesArray[0]->GetPrimitiveColor().ToString());
+	for (const auto& Color : ColorsNumMap)
+	{
+		if (ResultColorMin > Color.Value)
+		{
+			ResultColorMin = Color.Value;
+		}
+	}
+	const FString* ColorMinString = ColorsNumMap.FindKey(ResultColorMin);
+	UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), **ColorMinString);
+
+	return ColorMinString;
 }
 
 void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
@@ -313,57 +375,6 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	
 	TObjectPtr<AShpsBaseShape> ShapeToDelete;
 	TObjectPtr<AShpsBaseShape> ShapeToAdd;
-
-	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	
-	//Find the primitive that has the largest quantity.
-	int ResultPrimitiveMax = *PrimitivesNumMap.Find(DestroyedPrimitiveType.ToString());
-	for (const auto& Primitive : PrimitivesNumMap)
-	{
-		if (ResultPrimitiveMax < Primitive.Value)
-		{
-			ResultPrimitiveMax = Primitive.Value;
-		}
-	}
-	const FString PrimitiveMaxTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMax);
-	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), *PrimitiveMaxTypeString);
-
-	//Find the primitive that has the least quantity.
-	int ResultPrimitiveMin = *PrimitivesNumMap.Find(DestroyedPrimitiveType.ToString());
-	for (const auto& Primitive : PrimitivesNumMap)
-	{
-		if (ResultPrimitiveMin > Primitive.Value)
-		{
-			ResultPrimitiveMin = Primitive.Value;
-		}
-	}
-	const FString PrimitiveMinTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMin);
-	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), *PrimitiveMinTypeString);
-	
-	//Find the color that has the largest quantity
-	int ResultColorMax = *ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
-	for (const auto& Color : ColorsNumMap)
-	{
-		if (ResultColorMax < Color.Value)
-		{
-			ResultColorMax = Color.Value;
-		}
-	}
-	const FString ColorMaxString = *ColorsNumMap.FindKey(ResultColorMax);
-	UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), *ColorMaxString);
-	
-	//Find the color that has the least quantity
-	int ResultColorMin = *ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
-	for (const auto& Color : ColorsNumMap)
-	{
-		if (ResultColorMin > Color.Value)
-		{
-			ResultColorMin = Color.Value;
-		}
-	}
-	const FString ColorMinString = *ColorsNumMap.FindKey(ResultColorMin);
-	UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), *ColorMinString);
-	
 	
 	//Need just color adjustment, primitives are good
 	bool ColorIsChanged = false;
@@ -371,12 +382,12 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	{
 		for (const auto& Shape : ShapesArray)
 		{
-			if (Shape->GetPrimitiveColor().ToString().Equals(*ColorMaxString) && !ColorIsChanged)
+			if (Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !ColorIsChanged)
 			{
-				const FLinearColor* ColorToChange = ColorsMapString.FindKey(*ColorMinString);
+				const FLinearColor* ColorToChange = ColorsMapString.FindKey(*GetColorLeastQuantity());
 				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
 				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), *ColorMinString);
+				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), **GetColorLeastQuantity());
 
 				ShapeToDelete = Shape;
 											
@@ -395,9 +406,9 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	{
 		for (const auto& Shape : ShapesArray)
 		{
-			if (Shape->GetPrimitiveType().ToString().Equals(*PrimitiveMaxTypeString) && !PrimitiveIsChanged)
+			if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && !PrimitiveIsChanged)
 			{
-				const TSubclassOf<AShpsBaseShape> ShapeToChange = *PrimitivesMapString.FindKey(*PrimitiveMinTypeString);
+				const TSubclassOf<AShpsBaseShape> ShapeToChange = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
 				const FLinearColor* ShapeColor = ColorsMapString.FindKey(Shape->GetPrimitiveColor().ToString());
 
 				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeToChange, Shape);
@@ -425,12 +436,12 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	{
 		for (const auto& Shape : ShapesArray)
 		{
-			if (Shape->GetPrimitiveType().ToString().Equals(*PrimitiveMaxTypeString) && Shape->GetPrimitiveColor().ToString().Equals(*ColorMaxString) && !PrimitiveIsChanged)
+			if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !PrimitiveIsChanged)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
 				
-				const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*PrimitiveMinTypeString);
-				const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*ColorMinString);
+				const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
+				const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*GetColorLeastQuantity());
 
 				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeNewType, Shape);
 				NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);

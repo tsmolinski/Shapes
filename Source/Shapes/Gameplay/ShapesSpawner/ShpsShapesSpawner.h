@@ -46,6 +46,14 @@ protected:
 	void UpdatePrimitivesNumMap(TMap<FString, int>& PrimitivesNum);
 
 	void UpdateColorsNumMap(TMap<FString, int>& ColorsNum);
+
+	const FString* GetPrimitiveTypeLargestQuantity() const;
+
+	const FString* GetPrimitiveTypeLeastQuantity() const;
+
+	const FString* GetColorLargestQuantity() const;
+
+	const FString* GetColorLeastQuantity() const;
 	
 	UFUNCTION()
 	void OnShapeShooted(AActor* BaseShapeActor);
