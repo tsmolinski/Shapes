@@ -5,8 +5,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Shapes/UI/Widgets/ShpsTooltipWidget.h"
-//#include "Shapes/Core/Character/ShpsCharacter.h"
-//#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AShpsBaseShape::AShpsBaseShape()
@@ -23,11 +21,6 @@ AShpsBaseShape::AShpsBaseShape()
 	WidgetComponent->SetDrawAtDesiredSize(true);
 }
 
-//void AShpsBaseShape::OnShapeShooted(AActor* BaseShapeActor)
-//{
-	//UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::OnShapeShooted: %s"), *BaseShapeActor->GetName());
-//}
-
 FText AShpsBaseShape::GetPrimitiveType()
 {
 	return PrimitiveType;
@@ -43,7 +36,7 @@ FText AShpsBaseShape::GetPrimitiveSize()
 	return PrimitiveSize;
 }
 
-void AShpsBaseShape::SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives)
+void AShpsBaseShape::SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText>& Primitives)
 {
 	PrimitiveType = *(Primitives.Find(Primitive));
 }
@@ -94,12 +87,6 @@ void AShpsBaseShape::BeginPlay()
 	Super::BeginPlay();
 
 	WidgetComponent->SetVisibility(false);
-
-	//TObjectPtr<AShpsCharacter> PlayerCharacter = Cast<AShpsCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
-	//if (PlayerCharacter)
-	//{
-		//PlayerCharacter->OnShapeShootedDelegate.AddDynamic(this, &AShpsBaseShape::OnShapeShooted);
-	//}
 	
 	TObjectPtr<UShpsTooltipWidget> TooltipWidget =  Cast<UShpsTooltipWidget>(WidgetComponent->GetUserWidgetObject());
 	if (TooltipWidget)

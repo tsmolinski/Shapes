@@ -20,9 +20,6 @@ public:
 	// Sets default values for this actor's properties
 	AShpsBaseShape();
 
-	//UFUNCTION()
-	//void OnShapeShooted(AActor* BaseShapeActor);
-	
 	UFUNCTION(BlueprintCallable)
 	FText GetPrimitiveType();
 
@@ -31,7 +28,7 @@ public:
 
 	FText GetPrimitiveSize();
 	
-	void SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText> Primitives);
+	void SetPrimitiveTypeInfo(const TSubclassOf<AShpsBaseShape>& Primitive, TMap<TSubclassOf<AShpsBaseShape>, FText>& Primitives);
 
 	void SetPrimitiveColorInfo(const FLinearColor& Color, TMap<FLinearColor, FText> Colors);
 	

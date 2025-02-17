@@ -41,6 +41,7 @@ void AShpsShapesSpawner::BeginPlay()
 		PlayerCharacter->OnShapeShootedDelegate.AddDynamic(this, &AShpsShapesSpawner::OnShapeShooted);
 	}
 
+	//Init helpers
 	for (const auto& Color : ColorsMap)
 	{
 		ColorsMapString.Add(Color.Key, Color.Value.ToString());
@@ -164,8 +165,6 @@ void AShpsShapesSpawner::OnRandomNumberGenerated(int Number)
 {
 	RandomNumber = Number;
 
-	UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::RandomNumber value is: %d"), RandomNumber);
-
 	InitSpawner();
 	UpdatePrimitivesNumMap(PrimitivesNumMap);
 	UpdateColorsNumMap(ColorsNumMap);
@@ -225,7 +224,6 @@ TArray<FString> AShpsShapesSpawner::PrimitivesTypeAboveToleranceNumber(TMap<FStr
 		if (abs((PrimitiveNum.Value - (*PrimitivesNum.Find(DestroyedPrimitiveType.ToString())))) > ToleranceNumber)
 		{
 			PrimitiveTypeOverrepresentedArray.Add(PrimitiveNum.Key);
-			UE_LOG(LogTemp, Warning, TEXT("Za duzo Primitives: %s"), *PrimitiveNum.Key);
 		}
 	}
 
@@ -242,7 +240,6 @@ TArray<FString> AShpsShapesSpawner::ColorsAboveToleranceNumber(TMap<FString, int
 		if (abs((ColorNum.Value - (*ColorsNum.Find(DestroyedPrimitiveColor.ToString())))) > ToleranceNumber)
 		{
 			PrimitiveColorOverrepresentedArray.Add(ColorNum.Key);
-			UE_LOG(LogTemp, Warning, TEXT("Za duzo Koloru: %s"), *ColorNum.Key);
 		}
 	}
 
@@ -303,7 +300,6 @@ const FString* AShpsShapesSpawner::GetPrimitiveTypeLargestQuantity() const
 		}
 	}
 	const FString* PrimitiveMaxTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMax);
-	//UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), **PrimitiveMaxTypeString);
 	
 	return PrimitiveMaxTypeString;
 }
@@ -319,7 +315,6 @@ const FString* AShpsShapesSpawner::GetPrimitiveTypeLeastQuantity() const
 		}
 	}
 	const FString* PrimitiveMinTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMin);
-	//UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), **PrimitiveMinTypeString);
 
 	return PrimitiveMinTypeString;
 }
@@ -335,7 +330,6 @@ const FString* AShpsShapesSpawner::GetColorLargestQuantity() const
 		}
 	}
 	const FString* ColorMaxString = ColorsNumMap.FindKey(ResultColorMax);
-	//UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), **ColorMaxString);
 
 	return ColorMaxString;
 }
@@ -351,7 +345,6 @@ const FString* AShpsShapesSpawner::GetColorLeastQuantity() const
 		}
 	}
 	const FString* ColorMinString = ColorsNumMap.FindKey(ResultColorMin);
-	//UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), **ColorMinString);
 
 	return ColorMinString;
 }
@@ -364,9 +357,6 @@ TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawne
 		if (Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !ColorIsChanged)
 		{
 			const FLinearColor* ColorToChange = ColorsMapString.FindKey(*GetColorLeastQuantity());
-			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), **GetColorLeastQuantity());
 
 			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
 											
@@ -399,10 +389,6 @@ TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawne
 			AddColorToShape(NewShape, *ShapeColor);
 			NewShape->SetPrimitiveColorInfo(*ShapeColor, ColorsMap);
 
-			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s"), *NewShape->GetPrimitiveType().ToString());
-
 			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
 			TObjectPtr<AShpsBaseShape> ShapeToAdd = NewShape;
 			Shape->Destroy();
@@ -422,8 +408,6 @@ TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawne
 	{
 		if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !PrimitiveIsChanged)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-				
 			const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
 			const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*GetColorLeastQuantity());
 
@@ -433,9 +417,6 @@ TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawne
 												
 			AddColorToShape(NewShape, ShapeNewColor);
 			NewShape->SetPrimitiveColorInfo(ShapeNewColor, ColorsMap);
-
-			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s, Zmieniono na kolor: %s"), *NewShape->GetPrimitiveType().ToString(), *NewShape->GetPrimitiveColor().ToString());
 
 			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
 			TObjectPtr<AShpsBaseShape> ShapeToAdd = NewShape;
@@ -451,8 +432,6 @@ TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawne
 
 void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::OnShapeShooted: %s"), *BaseShapeActor->GetName());
-
 	TObjectPtr<AShpsBaseShape> DestroyedBaseShape = Cast<AShpsBaseShape>(BaseShapeActor);
 	FText DestroyedPrimitiveType = DestroyedBaseShape->GetPrimitiveType();
 	FText DestroyedPrimitiveColor = DestroyedBaseShape->GetPrimitiveColor();
@@ -499,34 +478,12 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 		ShapesArray.Remove(ShapeToDelete);
 		ShapesArray.Add(ShapeToAdd);
 	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-	for (const auto& Shape : ShapesArray)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Name: %s, Type: %s, Color:: %s"), *Shape->GetName(), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-	}
-	UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
 
 	PrimitiveColorOverrepresented.Empty();
 	PrimitiveTypeOverrepresented.Empty();
 
 	UpdateColorsNumMap(ColorsNumMap);
 	UpdatePrimitivesNumMap(PrimitivesNumMap);
-
-	/*UE_LOG(LogTemp, Warning, TEXT("-----------------------------PO---------------------------------------"));
-	for (const auto& Primitives : PrimitivesNumMap)
-	{
-	UE_LOG(LogTemp, Warning, TEXT("Primitive: %s, Value: %d"), *Primitives.Key, Primitives.Value);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-
-	UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-	for (const auto& Colors : ColorsNumMap)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Color: %s, Value: %d"), *Colors.Key, Colors.Value);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("--------------------------------KONIEC----------------------------------------"));*/
-	
 }
 
 // Called every frame
