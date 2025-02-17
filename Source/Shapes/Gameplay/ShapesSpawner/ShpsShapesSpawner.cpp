@@ -40,6 +40,16 @@ void AShpsShapesSpawner::BeginPlay()
 	{
 		PlayerCharacter->OnShapeShootedDelegate.AddDynamic(this, &AShpsShapesSpawner::OnShapeShooted);
 	}
+
+	for (const auto& Color : ColorsMap)
+	{
+		ColorsMapString.Add(Color.Key, Color.Value.ToString());
+	}
+
+	for (const auto& Primitive : PrimitivesMap)
+	{
+		PrimitivesMapString.Add(Primitive.Key, Primitive.Value.ToString());
+	}
 }
 
 AShpsBaseShape* AShpsShapesSpawner::SpawnShapeInRandomLocAndSize(const TSubclassOf<AShpsBaseShape>& Primitive)
@@ -157,8 +167,8 @@ void AShpsShapesSpawner::OnRandomNumberGenerated(int Number)
 	UE_LOG(LogTemp, Warning, TEXT("The AShpsShapesSpawner::RandomNumber value is: %d"), RandomNumber);
 
 	InitSpawner();
-	UpdatePrimitivesNumMap();
-	UpdateColorsNumMap();
+	UpdatePrimitivesNumMap(PrimitivesNumMap);
+	UpdateColorsNumMap(ColorsNumMap);
 }
 
 void AShpsShapesSpawner::InitSpawner()
@@ -177,7 +187,7 @@ void AShpsShapesSpawner::InitSpawner()
 	AddColorsToShapes(ShapesArray, ColorsMap);
 }
 
-bool AShpsShapesSpawner::SameNumberOfEachPrimitive(TMap<FString, int> PrimitivesNum)
+bool AShpsShapesSpawner::SameNumberOfEachPrimitive(TMap<FString, int>& PrimitivesNum)
 {
 	for (const auto& PrimitiveNum : PrimitivesNum)
 	{
@@ -191,7 +201,7 @@ bool AShpsShapesSpawner::SameNumberOfEachPrimitive(TMap<FString, int> Primitives
 	return true;
 }
 
-bool AShpsShapesSpawner::SameNumberOfEachColor(TMap<FString, int> ColorsNum)
+bool AShpsShapesSpawner::SameNumberOfEachColor(TMap<FString, int>& ColorsNum)
 {
 	for (const auto& ColorNum : ColorsNum)
 	{
@@ -208,7 +218,7 @@ bool AShpsShapesSpawner::SameNumberOfEachColor(TMap<FString, int> ColorsNum)
 TArray<FString> AShpsShapesSpawner::PrimitivesTypeAboveToleranceNumber(TMap<FString, int>& PrimitivesNum, FText& DestroyedPrimitiveType)
 {
 	TArray<FString> PrimitiveTypeOverrepresentedArray;
-	UpdatePrimitivesNumMap();
+	UpdatePrimitivesNumMap(PrimitivesNumMap);
 	for (const auto& PrimitiveNum : PrimitivesNum)
 	{
 		if (abs((PrimitiveNum.Value - (*PrimitivesNum.Find(DestroyedPrimitiveType.ToString())))) > ToleranceNumber)
@@ -224,7 +234,7 @@ TArray<FString> AShpsShapesSpawner::PrimitivesTypeAboveToleranceNumber(TMap<FStr
 TArray<FString> AShpsShapesSpawner::ColorsAboveToleranceNumber(TMap<FString, int>& ColorsNum, FText& DestroyedPrimitiveColor)
 {
 	TArray<FString> PrimitiveColorOverrepresentedArray;
-	UpdateColorsNumMap();
+	UpdateColorsNumMap(ColorsNumMap);
 	for (const auto& ColorNum : ColorsNum)
 	{
 		if (abs((ColorNum.Value - (*ColorsNum.Find(DestroyedPrimitiveColor.ToString())))) > ToleranceNumber)
@@ -239,7 +249,7 @@ TArray<FString> AShpsShapesSpawner::ColorsAboveToleranceNumber(TMap<FString, int
 
 UE_DISABLE_OPTIMIZATION
 
-void AShpsShapesSpawner::UpdatePrimitivesNumMap()
+void AShpsShapesSpawner::UpdatePrimitivesNumMap(TMap<FString, int>& PrimitivesNum)
 {
 	for (auto& Primitive : PrimitivesMap)
 	{
@@ -249,14 +259,14 @@ void AShpsShapesSpawner::UpdatePrimitivesNumMap()
 			if (Primitive.Value.EqualTo(Shape->GetPrimitiveType()))
 			{
 				++Index;
-				PrimitivesNumMap.Add(Shape->GetPrimitiveType().ToString(), Index);
+				PrimitivesNum.Add(Shape->GetPrimitiveType().ToString(), Index);
 			}
 		}
 	}
 }
 UE_ENABLE_OPTIMIZATION
 
-void AShpsShapesSpawner::UpdateColorsNumMap()
+void AShpsShapesSpawner::UpdateColorsNumMap(TMap<FString, int>& ColorsNum)
 {
 	for (auto& Color : ColorsMap)
 	{
@@ -266,7 +276,7 @@ void AShpsShapesSpawner::UpdateColorsNumMap()
 			if (Color.Value.EqualTo(Shape->GetPrimitiveColor()))
 			{
 				++Index;
-				ColorsNumMap.Add(Shape->GetPrimitiveColor().ToString(), Index);
+				ColorsNum.Add(Shape->GetPrimitiveColor().ToString(), Index);
 			}
 		}
 	}
@@ -283,274 +293,160 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	ShapesArray.Remove(DestroyedBaseShape);
 	DestroyedBaseShape->Destroy();
 
-	UpdateColorsNumMap();
-	UpdatePrimitivesNumMap();
+	UpdateColorsNumMap(ColorsNumMap);
+	UpdatePrimitivesNumMap(PrimitivesNumMap);
 
 	TArray<FString> PrimitiveTypeOverrepresented = PrimitivesTypeAboveToleranceNumber(PrimitivesNumMap, DestroyedPrimitiveType);
 	TArray<FString> PrimitiveColorOverrepresented = ColorsAboveToleranceNumber(ColorsNumMap, DestroyedPrimitiveColor);
 	
 	TObjectPtr<AShpsBaseShape> ShapeToDelete;
 	TObjectPtr<AShpsBaseShape> ShapeToAdd;
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	//Find the primitive that has the largest quantity.
+	int ResultPrimitiveMax = *PrimitivesNumMap.Find(DestroyedPrimitiveType.ToString());
+	for (const auto& Primitive : PrimitivesNumMap)
+	{
+		if (ResultPrimitiveMax < Primitive.Value)
+		{
+			ResultPrimitiveMax = Primitive.Value;
+		}
+	}
+	
+	const FString PrimitiveMaxTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMax);
+	//UE_LOG(LogTemp, Warning, TEXT("ResultPrimitiveMax: %d"), ResultPrimitiveMax);
+	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), *PrimitiveMaxTypeString);
+
+	//Find the primitive that has the least quantity.
+	int ResultPrimitiveMin = *PrimitivesNumMap.Find(DestroyedPrimitiveType.ToString());
+	for (const auto& Primitive : PrimitivesNumMap)
+	{
+		if (ResultPrimitiveMin > Primitive.Value)
+		{
+			ResultPrimitiveMin = Primitive.Value;
+		}
+	}
+	const FString PrimitiveMinTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMin);
+	//UE_LOG(LogTemp, Warning, TEXT("ResultPrimitiveMin: %d"), ResultPrimitiveMin);
+	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), *PrimitiveMinTypeString);
+	
+	//Find the color that has the largest quantity
+	int ResultColorMax = *ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
+	for (const auto& Color : ColorsNumMap)
+	{
+		if (ResultColorMax < Color.Value)
+		{
+			ResultColorMax = Color.Value;
+		}
+	}
+	const FString ColorMaxString = *ColorsNumMap.FindKey(ResultColorMax);
+	//UE_LOG(LogTemp, Warning, TEXT("ResultColorMax: %d"), ResultColorMax);
+	UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), *ColorMaxString);
+	
+	//Find the color that has the least quantity
+	int ResultColorMin = *ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
+	for (const auto& Color : ColorsNumMap)
+	{
+		if (ResultColorMin > Color.Value)
+		{
+			ResultColorMin = Color.Value;
+		}
+	}
+	const FString ColorMinString = *ColorsNumMap.FindKey(ResultColorMin);
+	//UE_LOG(LogTemp, Warning, TEXT("ResultColorMin: %d"), ResultColorMin);
+	UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), *ColorMinString);
+	
 	
 	//Need just color adjustment, primitives are good
-	bool ColorChanged = false;
+	bool ColorIsChanged = false;
 	if (PrimitiveTypeOverrepresented.IsEmpty() && !PrimitiveColorOverrepresented.IsEmpty())
 	{
-		//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-		UpdatePrimitivesNumMap();
-		bool PrimitivesAreEqual = SameNumberOfEachPrimitive(PrimitivesNumMap);
-		int* result = PrimitivesNumMap.Find(DestroyedPrimitiveType.ToString());
-			for (const auto& Primitive : PrimitivesNumMap)
+		for (const auto& Shape : ShapesArray)
+		{
+			if (Shape->GetPrimitiveColor().ToString().Equals(*ColorMaxString) && !ColorIsChanged)
 			{
-				//Find the Primitive type that has the most or choose the first one if there are the same number of Primitive types.
-				if (Primitive.Value > *result || PrimitivesAreEqual)
-				{
-					PrimitivesAreEqual = !PrimitivesAreEqual;
-					*result = Primitive.Value;
-					UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-					UE_LOG(LogTemp, Warning, TEXT("Ksztalt, ktorego jest najwiecej: %s"), *Primitive.Key);
+				const FLinearColor* ColorToChange = ColorsMapString.FindKey(*ColorMinString);
+				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
+				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), *ColorMinString);
 
-					//Iterate through the shapes to find the one that has the right Primitive type (defined earlier) and color
-					for (const auto& Shape : ShapesArray)
-					{
-						if (Shape->GetPrimitiveType().ToString().Equals(Primitive.Key) && !ColorChanged)
-						{
-							for (const auto& PrimitiveColor : PrimitiveColorOverrepresented)
-							{
-								if (Shape->GetPrimitiveColor().ToString().Equals(PrimitiveColor))
-								{
-									UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-									UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-									
-									UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-									UE_LOG(LogTemp, Warning, TEXT("Kasowanie koloru z konkretnego ksztaltu"));
-									UE_LOG(LogTemp, Warning, TEXT("Color Name: %s, Color.Value: %d"), *Shape->GetPrimitiveColor().ToString(), (*ColorsNumMap.Find(Shape->GetPrimitiveColor().ToString()) - 1));
-									UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-
-									//Find FLinearColor in ColorsMap for Color change/swap
-									for (const auto& Color : ColorsMap)
-									{
-										if (!PrimitiveColorOverrepresented.Contains(Color.Value.ToString()) && !ColorChanged)
-										{
-											ShapeToDelete = Shape;
+				ShapeToDelete = Shape;
 											
-											AddColorToShape(Shape, Color.Key);
-											ColorChanged = true;
-											Shape->SetPrimitiveColorInfo(Color.Key, ColorsMap);
+				AddColorToShape(Shape, *ColorToChange);
+				ColorIsChanged = true;
+				Shape->SetPrimitiveColorInfo(*ColorToChange, ColorsMap);
 
-											ShapeToAdd = Shape;
-											
-											UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-											UE_LOG(LogTemp, Warning, TEXT("Zmieniam konkretny ksztalt na brakujacy kolor"));
-											UE_LOG(LogTemp, Warning, TEXT("Color Name: %s, Color.Value: %d"), *Shape->GetPrimitiveColor().ToString(), (*ColorsNumMap.Find(Shape->GetPrimitiveColor().ToString()) + 1));
-											UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				ShapeToAdd = Shape;
 			}
+		}
 	}
 
 	//Need just primitiveType adjumstment, colors are good
-	bool PrimitiveTypeChanged = false;
+	bool PrimitiveIsChanged = false;
 	if (PrimitiveColorOverrepresented.IsEmpty() && !PrimitiveTypeOverrepresented.IsEmpty())
 	{
-		//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-		UpdateColorsNumMap();
-		bool ColorsAreEqual = SameNumberOfEachColor(ColorsNumMap);
-		int* result = ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
-		for (const auto& ColorNum : ColorsNumMap)
+		for (const auto& Shape : ShapesArray)
 		{
-			//Find the color that has the most or choose the first one if there are the same number of colors.
-			if (ColorNum.Value > *result || ColorsAreEqual)
+			if (Shape->GetPrimitiveType().ToString().Equals(*PrimitiveMaxTypeString) && !PrimitiveIsChanged)
 			{
-				ColorsAreEqual = !ColorsAreEqual;
-				*result = ColorNum.Value;
+				const TSubclassOf<AShpsBaseShape> ShapeToChange = *PrimitivesMapString.FindKey(*PrimitiveMinTypeString);
+				const FLinearColor* ShapeColor = ColorsMapString.FindKey(Shape->GetPrimitiveColor().ToString());
+
+				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeToChange, Shape);
+				NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
+				NewShape->SetPrimitiveSizeInfo();
+												
+				AddColorToShape(NewShape, *ShapeColor);
+				NewShape->SetPrimitiveColorInfo(*ShapeColor, ColorsMap);
+
 				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-				UE_LOG(LogTemp, Warning, TEXT("Kolor, ktorego jest najwiecej: %s"), *ColorNum.Key);
+				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s"), *NewShape->GetPrimitiveType().ToString());
 
-				//Iterate through the shapes to find the one that has the right color (defined earlier) and primitive type
-				for (const auto& Shape : ShapesArray)
-				{
-					if (Shape->GetPrimitiveColor().ToString().Equals(ColorNum.Key) && !PrimitiveTypeChanged)
-					{
-						for (const auto& PrimitiveType : PrimitiveTypeOverrepresented)
-						{
-							if (Shape->GetPrimitiveType().ToString().Equals(PrimitiveType))
-							{
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-								UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-								
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-								UE_LOG(LogTemp, Warning, TEXT("Kasowanie ksztaltu z konkretnego koloru"));
-								UE_LOG(LogTemp, Warning, TEXT("PrimitiveType Name: %s, PrimitivesNumMap.Value: %d"), *Shape->GetPrimitiveType().ToString(), (*PrimitivesNumMap.Find(Shape->GetPrimitiveType().ToString()) - 1));
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-
-								//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-								UpdatePrimitivesNumMap();
-								//Find Primitive Type that is not overrepresented, because we need more of them.
-								for (const auto& Primitive : PrimitivesMap)
-								{
-									if (!PrimitiveTypeOverrepresented.Contains(Primitive.Value.ToString()) && !PrimitiveTypeChanged)
-									{
-										//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-										UpdatePrimitivesNumMap();
-										//Check the least number of not overrepresented primitives.
-										int* SmallestPrimitiveNum = PrimitivesNumMap.Find(Shape->GetPrimitiveType().ToString());
-										UE_LOG(LogTemp, Warning, TEXT("SMALLEST PRIMITIVE NUM PRZED: %d"), *SmallestPrimitiveNum);
-
-										for (const auto& PrimitiveNum2 : PrimitivesNumMap)
-										{
-											UE_LOG(LogTemp, Warning, TEXT("SMALLEST PRIMITIVE NUM2: %d"), PrimitiveNum2.Value);
-											if (PrimitiveNum2.Value < *SmallestPrimitiveNum)
-											{
-												*SmallestPrimitiveNum = PrimitiveNum2.Value;
-												UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-												UE_LOG(LogTemp, Warning, TEXT("Ksztalt, ktorego jest najmniej: %s"), *PrimitiveNum2.Key);
-												UE_LOG(LogTemp, Warning, TEXT("SMALLEST PRIMITIVE NUM KONIEC: %d"), *SmallestPrimitiveNum);
-
-												//Find Primitive TSubclassOf for spawning
-												for (const auto& Primitive2 : PrimitivesMap)
-												{
-													//Find the Primitive type that has the least amount for spawning
-													if (Primitive2.Value.ToString().Contains(PrimitiveNum2.Key))
-													{
-														UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-														UE_LOG(LogTemp, Warning, TEXT("Ksztalt, ktorego jest najmniej----------------------------------------: %s"), *Primitive2.Value.ToString());
-
-														//Find FLinearColor in ColorsMap for spawning
-														for (const auto& Color : ColorsMap)
-														{
-															//Find FLinearColor in ColorsMap for spawning
-															if (Color.Value.ToString().Contains((Shape->GetPrimitiveColor().ToString())))
-															{
-																AShpsBaseShape* NewShape = ChangePrimitiveType(Primitive2.Key, Shape);
-																NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
-																NewShape->SetPrimitiveSizeInfo();
+				ShapeToDelete = Shape;
+				ShapeToAdd = NewShape;
+				Shape->Destroy();
 												
-																AddColorToShape(NewShape, Color.Key);
-																NewShape->SetPrimitiveColorInfo(Color.Key, ColorsMap);
-
-																ShapeToDelete = Shape;
-																ShapeToAdd = NewShape;
-																Shape->Destroy();
-												
-																PrimitiveTypeChanged = true;
-
-																UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-																UE_LOG(LogTemp, Warning, TEXT("Zmieniam konkretny kolor na brakujacy ksztalt"));
-																UE_LOG(LogTemp, Warning, TEXT("PrimitiveType Name: %s, PrimitivesNumMap.Value: %d"), *NewShape->GetPrimitiveType().ToString(), (*PrimitivesNumMap.Find(NewShape->GetPrimitiveType().ToString()) + 1));
-																UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				PrimitiveIsChanged = true;
 			}
 		}
 	}
-
-	//Need primitive type and color adjustment
+	
+	//Need PrimitiveType and Color adjustments
 	if (!PrimitiveColorOverrepresented.IsEmpty() && !PrimitiveTypeOverrepresented.IsEmpty())
 	{
-		//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-		UpdateColorsNumMap();
-		int* result = ColorsNumMap.Find(DestroyedPrimitiveColor.ToString());
-		for (const auto& ColorNum : ColorsNumMap)
+		for (const auto& Shape : ShapesArray)
 		{
-			//Find the Color that has the more or choose the first one if there are the same number of Colors.
-			if (ColorNum.Value > *result && !PrimitiveTypeChanged)
+			if (Shape->GetPrimitiveType().ToString().Equals(*PrimitiveMaxTypeString) && Shape->GetPrimitiveColor().ToString().Equals(*ColorMaxString) && !PrimitiveIsChanged)
 			{
-				*result = ColorNum.Value;
+				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+				
+				const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*PrimitiveMinTypeString);
+				const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*ColorMinString);
+
+				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeNewType, Shape);
+				NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
+				NewShape->SetPrimitiveSizeInfo();
+												
+				AddColorToShape(NewShape, ShapeNewColor);
+				NewShape->SetPrimitiveColorInfo(ShapeNewColor, ColorsMap);
+
 				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-				UE_LOG(LogTemp, Warning, TEXT("Kolor, ktorego jest najwiecej: %s"), *ColorNum.Key);
+				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s, Zmieniono na kolor: %s"), *NewShape->GetPrimitiveType().ToString(), *NewShape->GetPrimitiveColor().ToString());
 
-				//Iterate through the shapes to find the one that has the right color (defined earlier) and primitive type
-				for (const auto& Shape : ShapesArray)
-				{
-					if (Shape->GetPrimitiveColor().ToString().Equals(ColorNum.Key) && !PrimitiveTypeChanged)
-					{
-						for (const auto& PrimitiveType : PrimitiveTypeOverrepresented)
-						{
-							if (Shape->GetPrimitiveType().ToString().Equals(PrimitiveType))
-							{
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-								UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-								
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-								UE_LOG(LogTemp, Warning, TEXT("Kasowanie ksztaltu z konkretnego koloru"));
-								UE_LOG(LogTemp, Warning, TEXT("PrimitiveType Name: %s, PrimitivesNumMap.Value: %d"), *Shape->GetPrimitiveType().ToString(), (*PrimitivesNumMap.Find(Shape->GetPrimitiveType().ToString()) - 1));
-								UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-
-								for (const auto& Primitive : PrimitivesMap)
-								{
-									if (!PrimitiveTypeOverrepresented.Contains(Primitive.Value.ToString()) && !PrimitiveTypeChanged)
-									{
-										//Update required, otherwise there are different numbers, haven't found the reason for this bug.
-										UpdateColorsNumMap();
-										//Check the least number of not overrepresented primitives that has right color
-										int* SmallestColorNum = ColorsNumMap.Find(Shape->GetPrimitiveColor().ToString());
-										UE_LOG(LogTemp, Warning, TEXT("SMALLEST COLOR NUM PRZED: %d"), *SmallestColorNum);
-										
-										for (const auto& ColorNum2 : ColorsNumMap)
-										{
-											UE_LOG(LogTemp, Warning, TEXT("COLORNUM2.VALUE: %d"), ColorNum2.Value);
-											if (ColorNum2.Value < *SmallestColorNum)
-											{
-												*SmallestColorNum = ColorNum2.Value;
-												UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-												UE_LOG(LogTemp, Warning, TEXT("Kolor, ktorego jest najmniej: %s"), *ColorNum2.Key);
-												UE_LOG(LogTemp, Warning, TEXT("SMALLEST COLOR NUM KONIEC: %d"), *SmallestColorNum);
-
-												//Find FLinearColor for spawning
-												for (const auto& Color : ColorsMap)
-												{
-													if (Color.Value.ToString().Contains(ColorNum2.Key))
-													{
-														AShpsBaseShape* NewShape = ChangePrimitiveType(Primitive.Key, Shape);
-														NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
-														NewShape->SetPrimitiveSizeInfo();
+				ShapeToDelete = Shape;
+				ShapeToAdd = NewShape;
+				Shape->Destroy();
 												
-														AddColorToShape(NewShape, Color.Key);
-														NewShape->SetPrimitiveColorInfo(Color.Key, ColorsMap);
-
-														ShapeToDelete = Shape;
-														ShapeToAdd = NewShape;
-														Shape->Destroy();
-												
-														PrimitiveTypeChanged = true;
-
-														UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-														UE_LOG(LogTemp, Warning, TEXT("Zmieniam konkretny kolor na brakujacy ksztalt"));
-														UE_LOG(LogTemp, Warning, TEXT("PrimitiveType Name: %s, PrimitivesNumMap.Value: %d"), *NewShape->GetPrimitiveType().ToString(), (*PrimitivesNumMap.Find(NewShape->GetPrimitiveType().ToString()) + 1));
-														UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-													}
-												}
-											}
-										}
-										
-									}
-								}
-							}
-						}
-					}
-				}
+				PrimitiveIsChanged = true;
+				
 			}
 		}
 	}
 	
-	
-	if (PrimitiveTypeChanged || ColorChanged)
+	//if (PrimitiveTypeChanged || ColorChanged)
+	if (PrimitiveIsChanged || ColorIsChanged)
 	{
 		ShapesArray.Remove(ShapeToDelete);
 		ShapesArray.Add(ShapeToAdd);
@@ -566,8 +462,8 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	PrimitiveColorOverrepresented.Empty();
 	PrimitiveTypeOverrepresented.Empty();
 
-	UpdateColorsNumMap();
-	UpdatePrimitivesNumMap();
+	UpdateColorsNumMap(ColorsNumMap);
+	UpdatePrimitivesNumMap(PrimitivesNumMap);
 
 	UE_LOG(LogTemp, Warning, TEXT("-----------------------------PO---------------------------------------"));
 	for (const auto& Primitives : PrimitivesNumMap)

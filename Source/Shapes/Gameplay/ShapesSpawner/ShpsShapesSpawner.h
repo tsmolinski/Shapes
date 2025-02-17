@@ -35,17 +35,17 @@ protected:
 
 	void InitSpawner();
 
-	bool SameNumberOfEachPrimitive(TMap<FString, int> PrimitivesNum);
+	bool SameNumberOfEachPrimitive(TMap<FString, int>& PrimitivesNum);
 
-	bool SameNumberOfEachColor(TMap<FString, int> ColorsNum);
+	bool SameNumberOfEachColor(TMap<FString, int>& ColorsNum);
 
 	TArray<FString> PrimitivesTypeAboveToleranceNumber(TMap<FString, int>& PrimitivesNum, FText& DestroyedPrimitiveType);
 
 	TArray<FString> ColorsAboveToleranceNumber(TMap<FString, int>& ColorsNum, FText& DestroyedPrimitiveColor);
 
-	void UpdatePrimitivesNumMap();
+	void UpdatePrimitivesNumMap(TMap<FString, int>& PrimitivesNum);
 
-	void UpdateColorsNumMap();
+	void UpdateColorsNumMap(TMap<FString, int>& ColorsNum);
 	
 	UFUNCTION()
 	void OnShapeShooted(AActor* BaseShapeActor);
@@ -61,8 +61,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Arrays")
 	TMap<FLinearColor, FText> ColorsMap;
 
+	UPROPERTY()
+	TMap<FLinearColor, FString> ColorsMapString;
+
 	UPROPERTY(EditAnywhere, Category = "Arrays")
 	TMap<TSubclassOf<AShpsBaseShape>, FText> PrimitivesMap;
+
+	UPROPERTY()
+	TMap<TSubclassOf<AShpsBaseShape>, FString> PrimitivesMapString;
 	
 	UPROPERTY(EditDefaultsOnly,Category = "Arrays")
 	TArray<TObjectPtr<AShpsBaseShape>> ShapesArray;
