@@ -219,6 +219,7 @@ TArray<FString> AShpsShapesSpawner::PrimitivesTypeAboveToleranceNumber(TMap<FStr
 {
 	TArray<FString> PrimitiveTypeOverrepresentedArray;
 	UpdatePrimitivesNumMap(PrimitivesNumMap);
+	
 	for (const auto& PrimitiveNum : PrimitivesNum)
 	{
 		if (abs((PrimitiveNum.Value - (*PrimitivesNum.Find(DestroyedPrimitiveType.ToString())))) > ToleranceNumber)
@@ -235,6 +236,7 @@ TArray<FString> AShpsShapesSpawner::ColorsAboveToleranceNumber(TMap<FString, int
 {
 	TArray<FString> PrimitiveColorOverrepresentedArray;
 	UpdateColorsNumMap(ColorsNumMap);
+	
 	for (const auto& ColorNum : ColorsNum)
 	{
 		if (abs((ColorNum.Value - (*ColorsNum.Find(DestroyedPrimitiveColor.ToString())))) > ToleranceNumber)
@@ -262,6 +264,10 @@ void AShpsShapesSpawner::UpdatePrimitivesNumMap(TMap<FString, int>& PrimitivesNu
 				PrimitivesNum.Add(Shape->GetPrimitiveType().ToString(), Index);
 			}
 		}
+		if (Index == 0)
+		{
+			PrimitivesNum.Add(Primitive.Value.ToString(), Index);
+		}
 	}
 }
 UE_ENABLE_OPTIMIZATION
@@ -279,7 +285,13 @@ void AShpsShapesSpawner::UpdateColorsNumMap(TMap<FString, int>& ColorsNum)
 				ColorsNum.Add(Shape->GetPrimitiveColor().ToString(), Index);
 			}
 		}
+		if (Index == 0)
+		{
+			ColorsNum.Add(Color.Value.ToString(), Index);
+		}
 	}
+
+	
 }
 
 void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
@@ -313,9 +325,7 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 			ResultPrimitiveMax = Primitive.Value;
 		}
 	}
-	
 	const FString PrimitiveMaxTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMax);
-	//UE_LOG(LogTemp, Warning, TEXT("ResultPrimitiveMax: %d"), ResultPrimitiveMax);
 	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), *PrimitiveMaxTypeString);
 
 	//Find the primitive that has the least quantity.
@@ -328,7 +338,6 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 		}
 	}
 	const FString PrimitiveMinTypeString = *PrimitivesNumMap.FindKey(ResultPrimitiveMin);
-	//UE_LOG(LogTemp, Warning, TEXT("ResultPrimitiveMin: %d"), ResultPrimitiveMin);
 	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), *PrimitiveMinTypeString);
 	
 	//Find the color that has the largest quantity
@@ -341,7 +350,6 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 		}
 	}
 	const FString ColorMaxString = *ColorsNumMap.FindKey(ResultColorMax);
-	//UE_LOG(LogTemp, Warning, TEXT("ResultColorMax: %d"), ResultColorMax);
 	UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), *ColorMaxString);
 	
 	//Find the color that has the least quantity
@@ -354,7 +362,6 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 		}
 	}
 	const FString ColorMinString = *ColorsNumMap.FindKey(ResultColorMin);
-	//UE_LOG(LogTemp, Warning, TEXT("ResultColorMin: %d"), ResultColorMin);
 	UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), *ColorMinString);
 	
 	

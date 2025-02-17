@@ -28,5 +28,5 @@ protected:
 	int MinNumber = 2;
 	
 	UPROPERTY(EditDefaultsOnly)
-	int MaxNumber = 6;
+	int MaxNumber = 2;
 };
