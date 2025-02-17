@@ -54,6 +54,12 @@ protected:
 	const FString* GetColorLargestQuantity() const;
 
 	const FString* GetColorLeastQuantity() const;
+
+	TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AdjustColors();
+	
+	TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AdjustPrimitiveType();
+	
+	TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AdjustColorsAndPrimitiveType();
 	
 	UFUNCTION()
 	void OnShapeShooted(AActor* BaseShapeActor);

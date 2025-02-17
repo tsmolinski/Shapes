@@ -303,7 +303,7 @@ const FString* AShpsShapesSpawner::GetPrimitiveTypeLargestQuantity() const
 		}
 	}
 	const FString* PrimitiveMaxTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMax);
-	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), **PrimitiveMaxTypeString);
+	//UE_LOG(LogTemp, Warning, TEXT("PrimitiveMaxTypeString: %s"), **PrimitiveMaxTypeString);
 	
 	return PrimitiveMaxTypeString;
 }
@@ -319,7 +319,7 @@ const FString* AShpsShapesSpawner::GetPrimitiveTypeLeastQuantity() const
 		}
 	}
 	const FString* PrimitiveMinTypeString = PrimitivesNumMap.FindKey(ResultPrimitiveMin);
-	UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), **PrimitiveMinTypeString);
+	//UE_LOG(LogTemp, Warning, TEXT("PrimitiveMinTypeString: %s"), **PrimitiveMinTypeString);
 
 	return PrimitiveMinTypeString;
 }
@@ -335,7 +335,7 @@ const FString* AShpsShapesSpawner::GetColorLargestQuantity() const
 		}
 	}
 	const FString* ColorMaxString = ColorsNumMap.FindKey(ResultColorMax);
-	UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), **ColorMaxString);
+	//UE_LOG(LogTemp, Warning, TEXT("ColorMaxString: %s"), **ColorMaxString);
 
 	return ColorMaxString;
 }
@@ -351,9 +351,102 @@ const FString* AShpsShapesSpawner::GetColorLeastQuantity() const
 		}
 	}
 	const FString* ColorMinString = ColorsNumMap.FindKey(ResultColorMin);
-	UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), **ColorMinString);
+	//UE_LOG(LogTemp, Warning, TEXT("ColorMinString: %s"), **ColorMinString);
 
 	return ColorMinString;
+}
+
+TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawner::AdjustColors()
+{
+	bool ColorIsChanged = false;
+	for (const auto& Shape : ShapesArray)
+	{
+		if (Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !ColorIsChanged)
+		{
+			const FLinearColor* ColorToChange = ColorsMapString.FindKey(*GetColorLeastQuantity());
+			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
+			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), **GetColorLeastQuantity());
+
+			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
+											
+			AddColorToShape(Shape, *ColorToChange);
+			ColorIsChanged = true;
+			Shape->SetPrimitiveColorInfo(*ColorToChange, ColorsMap);
+
+			TObjectPtr<AShpsBaseShape> ShapeToAdd = Shape;
+			
+			return MakeTuple(ShapeToDelete, ShapeToAdd);
+		}
+	}
+	return MakeTuple(nullptr, nullptr);
+}
+
+TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawner::AdjustPrimitiveType()
+{
+	bool PrimitiveIsChanged = false;
+	for (const auto& Shape : ShapesArray)
+	{
+		if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && !PrimitiveIsChanged)
+		{
+			const TSubclassOf<AShpsBaseShape> ShapeToChange = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
+			const FLinearColor* ShapeColor = ColorsMapString.FindKey(Shape->GetPrimitiveColor().ToString());
+
+			AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeToChange, Shape);
+			NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
+			NewShape->SetPrimitiveSizeInfo();
+												
+			AddColorToShape(NewShape, *ShapeColor);
+			NewShape->SetPrimitiveColorInfo(*ShapeColor, ColorsMap);
+
+			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
+			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s"), *NewShape->GetPrimitiveType().ToString());
+
+			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
+			TObjectPtr<AShpsBaseShape> ShapeToAdd = NewShape;
+			Shape->Destroy();
+												
+			PrimitiveIsChanged = true;
+
+			return MakeTuple(ShapeToDelete, ShapeToAdd);
+		}
+	}
+	return MakeTuple(nullptr, nullptr);
+}
+
+TTuple<TObjectPtr<AShpsBaseShape>, TObjectPtr<AShpsBaseShape>> AShpsShapesSpawner::AdjustColorsAndPrimitiveType()
+{
+	bool PrimitiveIsChanged = false;
+	for (const auto& Shape : ShapesArray)
+	{
+		if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !PrimitiveIsChanged)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
+				
+			const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
+			const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*GetColorLeastQuantity());
+
+			AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeNewType, Shape);
+			NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
+			NewShape->SetPrimitiveSizeInfo();
+												
+			AddColorToShape(NewShape, ShapeNewColor);
+			NewShape->SetPrimitiveColorInfo(ShapeNewColor, ColorsMap);
+
+			UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
+			UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s, Zmieniono na kolor: %s"), *NewShape->GetPrimitiveType().ToString(), *NewShape->GetPrimitiveColor().ToString());
+
+			TObjectPtr<AShpsBaseShape> ShapeToDelete = Shape;
+			TObjectPtr<AShpsBaseShape> ShapeToAdd = NewShape;
+			Shape->Destroy();
+												
+			PrimitiveIsChanged = true;
+
+			return MakeTuple(ShapeToDelete, ShapeToAdd);
+		}
+	}
+	return MakeTuple(nullptr, nullptr);
 }
 
 void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
@@ -375,92 +468,29 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	
 	TObjectPtr<AShpsBaseShape> ShapeToDelete;
 	TObjectPtr<AShpsBaseShape> ShapeToAdd;
+
+	bool ColorIsChanged = false;
+	bool PrimitiveIsChanged = false;
 	
 	//Need just color adjustment, primitives are good
-	bool ColorIsChanged = false;
 	if (PrimitiveTypeOverrepresented.IsEmpty() && !PrimitiveColorOverrepresented.IsEmpty())
 	{
-		for (const auto& Shape : ShapesArray)
-		{
-			if (Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !ColorIsChanged)
-			{
-				const FLinearColor* ColorToChange = ColorsMapString.FindKey(*GetColorLeastQuantity());
-				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na kolor: %s"), **GetColorLeastQuantity());
-
-				ShapeToDelete = Shape;
-											
-				AddColorToShape(Shape, *ColorToChange);
-				ColorIsChanged = true;
-				Shape->SetPrimitiveColorInfo(*ColorToChange, ColorsMap);
-
-				ShapeToAdd = Shape;
-			}
-		}
+		Tie(ShapeToDelete, ShapeToAdd) = AdjustColors();
+		ColorIsChanged = true;
 	}
 
 	//Need just primitiveType adjumstment, colors are good
-	bool PrimitiveIsChanged = false;
 	if (PrimitiveColorOverrepresented.IsEmpty() && !PrimitiveTypeOverrepresented.IsEmpty())
 	{
-		for (const auto& Shape : ShapesArray)
-		{
-			if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && !PrimitiveIsChanged)
-			{
-				const TSubclassOf<AShpsBaseShape> ShapeToChange = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
-				const FLinearColor* ShapeColor = ColorsMapString.FindKey(Shape->GetPrimitiveColor().ToString());
-
-				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeToChange, Shape);
-				NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
-				NewShape->SetPrimitiveSizeInfo();
-												
-				AddColorToShape(NewShape, *ShapeColor);
-				NewShape->SetPrimitiveColorInfo(*ShapeColor, ColorsMap);
-
-				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s"), *NewShape->GetPrimitiveType().ToString());
-
-				ShapeToDelete = Shape;
-				ShapeToAdd = NewShape;
-				Shape->Destroy();
-												
-				PrimitiveIsChanged = true;
-			}
-		}
+		Tie(ShapeToDelete, ShapeToAdd) = AdjustPrimitiveType();
+		PrimitiveIsChanged = true;
 	}
 	
 	//Need PrimitiveType and Color adjustments
 	if (!PrimitiveColorOverrepresented.IsEmpty() && !PrimitiveTypeOverrepresented.IsEmpty())
 	{
-		for (const auto& Shape : ShapesArray)
-		{
-			if (Shape->GetPrimitiveType().ToString().Equals(*GetPrimitiveTypeLargestQuantity()) && Shape->GetPrimitiveColor().ToString().Equals(*GetColorLargestQuantity()) && !PrimitiveIsChanged)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Wytypowany ksztalt: %s, wytypowany kolor do zmiany: %s"), *Shape->GetPrimitiveType().ToString(), *Shape->GetPrimitiveColor().ToString());
-				
-				const TSubclassOf<AShpsBaseShape> ShapeNewType = *PrimitivesMapString.FindKey(*GetPrimitiveTypeLeastQuantity());
-				const FLinearColor ShapeNewColor = *ColorsMapString.FindKey(*GetColorLeastQuantity());
-
-				AShpsBaseShape* NewShape = ChangePrimitiveType(ShapeNewType, Shape);
-				NewShape->SetPrimitiveTypeInfo(NewShape->GetClass(), PrimitivesMap);
-				NewShape->SetPrimitiveSizeInfo();
-												
-				AddColorToShape(NewShape, ShapeNewColor);
-				NewShape->SetPrimitiveColorInfo(ShapeNewColor, ColorsMap);
-
-				UE_LOG(LogTemp, Warning, TEXT("------------------------------------------------------------------------------"));
-				UE_LOG(LogTemp, Warning, TEXT("Zmienieno na ksztalt: %s, Zmieniono na kolor: %s"), *NewShape->GetPrimitiveType().ToString(), *NewShape->GetPrimitiveColor().ToString());
-
-				ShapeToDelete = Shape;
-				ShapeToAdd = NewShape;
-				Shape->Destroy();
-												
-				PrimitiveIsChanged = true;
-				
-			}
-		}
+		Tie(ShapeToDelete, ShapeToAdd) = AdjustColorsAndPrimitiveType();
+		PrimitiveIsChanged = true;
 	}
 	
 	//if (PrimitiveTypeChanged || ColorChanged)
@@ -483,7 +513,7 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	UpdateColorsNumMap(ColorsNumMap);
 	UpdatePrimitivesNumMap(PrimitivesNumMap);
 
-	UE_LOG(LogTemp, Warning, TEXT("-----------------------------PO---------------------------------------"));
+	/*UE_LOG(LogTemp, Warning, TEXT("-----------------------------PO---------------------------------------"));
 	for (const auto& Primitives : PrimitivesNumMap)
 	{
 	UE_LOG(LogTemp, Warning, TEXT("Primitive: %s, Value: %d"), *Primitives.Key, Primitives.Value);
@@ -495,7 +525,7 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Color: %s, Value: %d"), *Colors.Key, Colors.Value);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("--------------------------------KONIEC----------------------------------------"));
+	UE_LOG(LogTemp, Warning, TEXT("--------------------------------KONIEC----------------------------------------"));*/
 	
 }
 
@@ -503,6 +533,5 @@ void AShpsShapesSpawner::OnShapeShooted(AActor* BaseShapeActor)
 void AShpsShapesSpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
