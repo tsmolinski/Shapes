@@ -35,6 +35,14 @@ protected:
 
 	void InitSpawner();
 
+	bool SameNumberOfEachPrimitive(TMap<FString, int> PrimitivesNum);
+
+	bool SameNumberOfEachColor(TMap<FString, int> ColorsNum);
+
+	TArray<FString> PrimitivesTypeAboveToleranceNumber(TMap<FString, int>& PrimitivesNum, FText& DestroyedPrimitiveType);
+
+	TArray<FString> ColorsAboveToleranceNumber(TMap<FString, int>& ColorsNum, FText& DestroyedPrimitiveColor);
+
 	void UpdatePrimitivesNumMap();
 
 	void UpdateColorsNumMap();
